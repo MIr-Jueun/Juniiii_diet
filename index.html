@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다이어트 로드맵</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Grotesk:wght@400;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #1B2B4B;
+    --navy-light: #243660;
+    --mint: #4ECDC4;
+    --mint-dim: rgba(78,205,196,0.15);
+    --cream: #F7F5F0;
+    --cream-dim: rgba(247,245,240,0.6);
+    --red: #FF6B6B;
+    --yellow: #FFD166;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+  }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--navy);
+    color: var(--cream);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  h1, h2, .num { font-family: 'Space Grotesk', sans-serif; }
+
+  /* 레이아웃 */
+  .layout { display: grid; grid-template-columns: 260px 1fr; gap: 20px; max-width: 1100px; margin: 0 auto; }
+
+  /* 사이드바 */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+  .profile-card {
+    background: var(--mint-dim);
+    border: 1px solid var(--mint);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+  }
+  .avatar {
+    width: 60px; height: 60px;
+    background: var(--mint);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin: 0 auto 12px;
+  }
+  .profile-name { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .profile-sub { font-size: 12px; color: var(--cream-dim); }
+
+  .weight-display { margin-top: 14px; }
+  .weight-now { font-family: 'Space Grotesk', sans-serif; font-size: 38px; font-weight: 700; color: var(--mint); line-height: 1; }
+  .weight-unit { font-size: 14px; color: var(--cream-dim); }
+  .weight-goal { font-size: 12px; color: var(--cream-dim); margin-top: 4px; }
+  .weight-gap { font-size: 13px; color: var(--yellow); margin-top: 2px; font-weight: 500; }
+
+  /* 로드맵 사이드 */
+  .roadmap-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    flex: 1;
+  }
+  .roadmap-title { font-size: 12px; color: var(--cream-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
+
+  .stage {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 14px; position: relative;
+  }
+  .stage:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 11px; top: 28px;
+    width: 2px; height: calc(100% + 2px);
+    background: var(--border);
+  }
+  .stage-dot {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
+    position: relative; z-index: 1;
+  }
+  .stage-dot.done { background: var(--mint); color: var(--navy); }
+  .stage-dot.active { background: var(--yellow); color: var(--navy); box-shadow: 0 0 0 4px rgba(255,209,102,0.2); }
+  .stage-dot.locked { background: var(--border); color: var(--cream-dim); border: 1px solid var(--border); }
+
+  .stage-info { padding-top: 2px; }
+  .stage-label { font-size: 13px; font-weight: 500; }
+  .stage-range { font-size: 11px; color: var(--cream-dim); margin-top: 1px; }
+  .stage-period { font-size: 11px; color: var(--mint); margin-top: 1px; }
+
+  /* 메인 */
+  .main { display: flex; flex-direction: column; gap: 16px; }
+
+  /* 탭 */
+  .tabs { display: flex; gap: 8px; }
+  .tab {
+    padding: 8px 18px; border-radius: 100px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--cream-dim);
+    font-size: 13px; cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--mint); color: var(--navy); border-color: var(--mint); font-weight: 700; }
+
+  /* 패널 */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* 체중 추적 */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 13px; color: var(--cream-dim); margin-bottom: 16px; letter-spacing: 0.04em; }
+
+  .weight-input-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+  .weight-input {
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--cream);
+    font-size: 16px;
+    padding: 10px 14px;
+    width: 130px;
+    font-family: 'Space Grotesk', sans-serif;
+    outline: none;
+  }
+  .weight-input:focus { border-color: var(--mint); }
+  .btn {
+    padding: 10px 20px; border-radius: 10px;
+    background: var(--mint); color: var(--navy);
+    border: none; cursor: pointer;
+    font-size: 13px; font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    transition: opacity 0.2s;
+  }
+  .btn:hover { opacity: 0.85; }
+
+  /* 그래프 */
+  .chart-area { position: relative; height: 160px; margin-bottom: 8px; }
+  canvas#weightChart { width: 100%; height: 100%; }
+
+  .chart-empty { 
+    height: 160px; display: flex; align-items: center; justify-content: center;
+    color: var(--cream-dim); font-size: 13px;
+    border: 1px dashed var(--border); border-radius: 10px;
+  }
+
+  /* 기록 리스트 */
+  .record-list { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+  .record-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px;
+    background: var(--navy-light);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .record-date { color: var(--cream-dim); }
+  .record-weight { font-family: 'Space Grotesk', sans-serif; font-weight: 600; }
+  .record-diff { font-size: 12px; }
+  .record-diff.down { color: var(--mint); }
+  .record-diff.up { color: var(--red); }
+
+  /* 체크리스트 */
+  .checklist { display: flex; flex-direction: column; gap: 10px; }
+  .check-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: var(--navy-light);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .check-item:hover { background: rgba(78,205,196,0.1); }
+  .check-item.checked { opacity: 0.5; }
+  .checkbox {
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .check-item.checked .checkbox { background: var(--mint); border-color: var(--mint); }
+  .checkbox::after { content: '✓'; font-size: 12px; color: var(--navy); display: none; font-weight: 700; }
+  .check-item.checked .checkbox::after { display: block; }
+  .check-text { font-size: 14px; flex: 1; }
+  .check-item.checked .check-text { text-decoration: line-through; color: var(--cream-dim); }
+  .check-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 100px;
+    font-weight: 500;
+  }
+  .badge-diet { background: rgba(78,205,196,0.15); color: var(--mint); }
+  .badge-move { background: rgba(255,209,102,0.15); color: var(--yellow); }
+  .badge-life { background: rgba(255,107,107,0.15); color: var(--red); }
+
+  .progress-bar-wrap { margin-bottom: 6px; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--cream-dim); margin-bottom: 6px; }
+  .progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--mint); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* 식단 */
+  .meal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .meal-card {
+    background: var(--navy-light);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .meal-time { font-size: 11px; color: var(--cream-dim); margin-bottom: 6px; letter-spacing: 0.06em; }
+  .meal-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  .meal-tips { list-style: none; }
+  .meal-tips li { font-size: 12px; color: var(--cream-dim); padding: 2px 0; }
+  .meal-tips li::before { content: '· '; color: var(--mint); }
+
+  .avoid-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .avoid-tag {
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 12px;
+    background: rgba(255,107,107,0.1);
+    color: var(--red);
+    border: 1px solid rgba(255,107,107,0.2);
+  }
+  .ok-tag {
+    padding: 4px 12px; border-radius: 100px;
+    font-size: 12px;
+    background: rgba(78,205,196,0.1);
+    color: var(--mint);
+    border: 1px solid rgba(78,205,196,0.2);
+  }
+
+  /* 운동 */
+  .workout-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .workout-block {
+    background: var(--navy-light);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .workout-type { font-size: 11px; margin-bottom: 6px; }
+  .workout-type.cardio { color: var(--yellow); }
+  .workout-type.strength { color: var(--mint); }
+  .workout-duration { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; }
+  .workout-unit { font-size: 12px; color: var(--cream-dim); margin-top: 2px; }
+  .workout-desc { font-size: 12px; color: var(--cream-dim); margin-top: 8px; line-height: 1.5; }
+
+  .machine-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .machine-card {
+    background: var(--navy-light);
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .machine-icon { font-size: 22px; margin-bottom: 6px; }
+  .machine-name { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+  .machine-target { font-size: 11px; color: var(--mint); }
+
+  /* 반응형 */
+  @media (max-width: 700px) {
+    .layout { grid-template-columns: 1fr; }
+    .meal-grid, .workout-split, .machine-grid { grid-template-columns: 1fr; }
+    .machine-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 사이드바 -->
+  <div class="sidebar">
+    <div class="profile-card">
+      <div class="avatar">🌸</div>
+      <div class="profile-name">다이어트 로드맵</div>
+      <div class="profile-sub">168cm · 21세 · 여성</div>
+      <div class="weight-display">
+        <div class="weight-now" id="currentWeightDisplay">78.0</div>
+        <div class="weight-unit">kg 현재</div>
+        <div class="weight-goal">목표: 60~63kg</div>
+        <div class="weight-gap" id="weightGapDisplay">▼ 15.0kg 남음</div>
+      </div>
+    </div>
+
+    <div class="roadmap-card">
+      <div class="roadmap-title">진행 단계</div>
+
+      <div class="stage">
+        <div class="stage-dot active" id="dot1">1</div>
+        <div class="stage-info">
+          <div class="stage-label">78 → 70kg</div>
+          <div class="stage-range">-8kg 감량</div>
+          <div class="stage-period">예상 2~4개월</div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot locked" id="dot2">2</div>
+        <div class="stage-info">
+          <div class="stage-label">70 → 65kg</div>
+          <div class="stage-range">-5kg 감량</div>
+          <div class="stage-period">예상 2~3개월</div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-dot locked" id="dot3">3</div>
+        <div class="stage-info">
+          <div class="stage-label">65 → 60~63kg</div>
+          <div class="stage-range">목표 달성</div>
+          <div class="stage-period">예상 2~3개월</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 -->
+  <div class="main">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('track')">📊 체중 추적</button>
+      <button class="tab" onclick="switchTab('check')">✅ 오늘 체크</button>
+      <button class="tab" onclick="switchTab('diet')">🥗 식단 가이드</button>
+      <button class="tab" onclick="switchTab('workout')">💪 운동 루틴</button>
+    </div>
+
+    <!-- 체중 추적 -->
+    <div class="panel active" id="panel-track">
+      <div class="card">
+        <div class="card-title">체중 기록하기</div>
+        <div class="weight-input-row">
+          <input class="weight-input" type="number" id="weightInput" placeholder="예: 77.5" step="0.1" min="40" max="150">
+          <button class="btn" onclick="addWeight()">기록</button>
+        </div>
+        <div id="chartContainer">
+          <div class="chart-empty" id="chartEmpty">기록이 2개 이상이면 그래프가 표시돼요</div>
+          <canvas id="weightChart" style="display:none;"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">기록 내역</div>
+        <div class="record-list" id="recordList">
+          <div style="color:var(--cream-dim);font-size:13px;text-align:center;padding:20px;">아직 기록이 없어요</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오늘 체크 -->
+    <div class="panel" id="panel-check">
+      <div class="card">
+        <div class="card-title">오늘의 달성률</div>
+        <div class="progress-bar-wrap">
+          <div class="progress-label">
+            <span>진행 중</span>
+            <span id="progressText">0 / 8</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">오늘 할 일</div>
+        <div class="checklist" id="checklist"></div>
+      </div>
+    </div>
+
+    <!-- 식단 가이드 -->
+    <div class="panel" id="panel-diet">
+      <div class="card">
+        <div class="card-title">식사별 가이드</div>
+        <div class="meal-grid">
+          <div class="meal-card">
+            <div class="meal-time">🌅 아침</div>
+            <div class="meal-title">간단하게</div>
+            <ul class="meal-tips">
+              <li>안 먹어도 OK (현재 패턴 유지)</li>
+              <li>먹는다면 삶은 달걀 1~2개</li>
+              <li>바나나 or 그릭요거트</li>
+            </ul>
+          </div>
+          <div class="meal-card">
+            <div class="meal-time">☀️ 점심</div>
+            <div class="meal-title">집밥 유지</div>
+            <ul class="meal-tips">
+              <li>밥 2/3공기 (평소 -1/3)</li>
+              <li>단백질 반찬 꼭 포함</li>
+              <li>국물 건더기만, 국물 줄이기</li>
+            </ul>
+          </div>
+          <div class="meal-card">
+            <div class="meal-time">🌙 저녁</div>
+            <div class="meal-title">학식·식당 OK</div>
+            <ul class="meal-tips">
+              <li>돈까스→ 밥 절반, 소스 줄이기</li>
+              <li>볶음밥→ 2/3 그릇만</li>
+              <li>볶음면→ 면 2/3, 덜 먹고 멈추기</li>
+            </ul>
+          </div>
+          <div class="meal-card">
+            <div class="meal-time">☕ 음료</div>
+            <div class="meal-title">칼로리 줄이기</div>
+            <ul class="meal-tips">
+              <li>오트 콜드브루 주 1~2회까지</li>
+              <li>갈배음료 최소화</li>
+              <li>물·아메리카노·제로음료 활용</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">핵심 원칙</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="padding:12px 14px;background:var(--navy-light);border-radius:10px;font-size:13px;line-height:1.7;">
+            <span style="color:var(--mint);font-weight:700;">닭가슴살·샐러드 NO</span><br>
+            지금 먹는 음식 그대로 유지하면서 <span style="color:var(--yellow);">양 20~30%만 줄이는 게 핵심</span>이에요.<br>
+            배부르면 식사 종료가 가장 중요한 습관입니다.
+          </div>
+          <div style="padding:12px 14px;background:var(--navy-light);border-radius:10px;font-size:13px;line-height:1.7;">
+            <span style="color:var(--red);font-weight:700;">줄여야 할 것들</span><br>
+            <div class="avoid-list" style="margin-top:8px;">
+              <span class="avoid-tag">달콤한 음료</span>
+              <span class="avoid-tag">디저트 (주 3회↓)</span>
+              <span class="avoid-tag">배불러도 계속 먹기</span>
+              <span class="avoid-tag">야식</span>
+            </div>
+          </div>
+          <div style="padding:12px 14px;background:var(--navy-light);border-radius:10px;font-size:13px;line-height:1.7;">
+            <span style="color:var(--mint);font-weight:700;">유지해도 되는 것들</span><br>
+            <div class="avoid-list" style="margin-top:8px;">
+              <span class="ok-tag">돈까스 (양 조절)</span>
+              <span class="ok-tag">볶음밥 (양 조절)</span>
+              <span class="ok-tag">집밥</span>
+              <span class="ok-tag">아메리카노</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 운동 루틴 -->
+    <div class="panel" id="panel-workout">
+      <div class="card">
+        <div class="card-title">주 3회 루틴 구성</div>
+        <div class="workout-split">
+          <div class="workout-block">
+            <div class="workout-type cardio">유산소</div>
+            <div class="workout-duration">30~40</div>
+            <div class="workout-unit">분 / 세션</div>
+            <div class="workout-desc">런닝머신 빠르게 걷기 (경사 5~8도)<br>또는 일립티컬, 사이클</div>
+          </div>
+          <div class="workout-block">
+            <div class="workout-type strength">근력</div>
+            <div class="workout-duration">20~30</div>
+            <div class="workout-unit">분 / 세션</div>
+            <div class="workout-desc">머신 위주, 3세트×12회<br>하체+등+가슴 골고루</div>
+          </div>
+        </div>
+        <div style="padding:12px 14px;background:var(--navy-light);border-radius:10px;font-size:12px;color:var(--cream-dim);line-height:1.6;">
+          💡 근력운동을 추가하면 근육량이 유지돼서 같은 체중이어도 <span style="color:var(--cream);">옷핏이 훨씬 좋아져요.</span><br>
+          지금처럼 유산소만 60분 하는 것보다 유산소 30분 + 근력 20분이 체형 변화에 더 효과적입니다.
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">추천 머신 (헬스장)</div>
+        <div class="machine-grid">
+          <div class="machine-card">
+            <div class="machine-icon">🦵</div>
+            <div class="machine-name">레그프레스</div>
+            <div class="machine-target">허벅지·엉덩이</div>
+          </div>
+          <div class="machine-card">
+            <div class="machine-icon">🔙</div>
+            <div class="machine-name">레그컬</div>
+            <div class="machine-target">햄스트링</div>
+          </div>
+          <div class="machine-card">
+            <div class="machine-icon">🍑</div>
+            <div class="machine-name">힙어브덕션</div>
+            <div class="machine-target">엉덩이 옆라인</div>
+          </div>
+          <div class="machine-card">
+            <div class="machine-icon">💪</div>
+            <div class="machine-name">랫풀다운</div>
+            <div class="machine-target">등·팔</div>
+          </div>
+          <div class="machine-card">
+            <div class="machine-icon">🚣</div>
+            <div class="machine-name">시티드로우</div>
+            <div class="machine-target">등·어깨</div>
+          </div>
+          <div class="machine-card">
+            <div class="machine-icon">🤲</div>
+            <div class="machine-name">체스트프레스</div>
+            <div class="machine-target">가슴·팔</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 상태
+let weights = JSON.parse(localStorage.getItem('dietWeights') || '[]');
+let checks = JSON.parse(localStorage.getItem('dietChecks') || '{}');
+
+const todayKey = new Date().toISOString().slice(0, 10);
+if (!checks[todayKey]) checks[todayKey] = [];
+
+const TASKS = [
+  { id: 'meal1', text: '점심 밥 2/3공기만 먹기', badge: 'diet', label: '식단' },
+  { id: 'meal2', text: '저녁 양 20~30% 줄이기', badge: 'diet', label: '식단' },
+  { id: 'meal3', text: '배부르면 식사 멈추기', badge: 'diet', label: '식단' },
+  { id: 'drink1', text: '단 음료 대신 물/아메리카노', badge: 'diet', label: '식단' },
+  { id: 'ex1', text: '운동 1시간 (유산소+근력)', badge: 'move', label: '운동' },
+  { id: 'ex2', text: '하루 5천 보 이상 걷기', badge: 'move', label: '운동' },
+  { id: 'life1', text: '야식 먹지 않기', badge: 'life', label: '생활' },
+  { id: 'life2', text: '수분 1.5L 이상 마시기', badge: 'life', label: '생활' },
+];
+
+// 탭
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// 체중 추가
+function addWeight() {
+  const val = parseFloat(document.getElementById('weightInput').value);
+  if (!val || val < 30 || val > 200) { alert('올바른 체중을 입력해줘요 (30~200kg)'); return; }
+  const entry = { date: todayKey, weight: val };
+  // 오늘 이미 있으면 덮어쓰기
+  const idx = weights.findIndex(w => w.date === todayKey);
+  if (idx >= 0) weights[idx] = entry;
+  else weights.push(entry);
+  weights.sort((a, b) => a.date.localeCompare(b.date));
+  localStorage.setItem('dietWeights', JSON.stringify(weights));
+  document.getElementById('weightInput').value = '';
+  renderWeights();
+  updateSidebar();
+}
+
+function renderWeights() {
+  const list = document.getElementById('recordList');
+  if (!weights.length) {
+    list.innerHTML = '<div style="color:var(--cream-dim);font-size:13px;text-align:center;padding:20px;">아직 기록이 없어요</div>';
+    document.getElementById('chartEmpty').style.display = 'flex';
+    document.getElementById('weightChart').style.display = 'none';
+    return;
+  }
+
+  // 리스트
+  const sorted = [...weights].reverse();
+  list.innerHTML = sorted.map((w, i) => {
+    const prev = sorted[i + 1];
+    let diffHtml = '';
+    if (prev) {
+      const diff = (w.weight - prev.weight).toFixed(1);
+      const cls = diff < 0 ? 'down' : 'up';
+      const sign = diff < 0 ? '▼' : '▲';
+      diffHtml = `<span class="record-diff ${cls}">${sign}${Math.abs(diff)}</span>`;
+    }
+    return `<div class="record-item">
+      <span class="record-date">${w.date}</span>
+      <span class="record-weight">${w.weight}kg</span>
+      ${diffHtml}
+    </div>`;
+  }).join('');
+
+  // 그래프
+  if (weights.length >= 2) {
+    document.getElementById('chartEmpty').style.display = 'none';
+    document.getElementById('weightChart').style.display = 'block';
+    drawChart();
+  }
+}
+
+function drawChart() {
+  const canvas = document.getElementById('weightChart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600;
+  const H = 160;
+  canvas.width = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  const data = weights.map(w => w.weight);
+  const labels = weights.map(w => w.date.slice(5));
+  const minW = Math.min(...data) - 1;
+  const maxW = Math.max(...data) + 1;
+
+  const pad = { l: 40, r: 16, t: 12, b: 28 };
+  const chartW = W - pad.l - pad.r;
+  const chartH = H - pad.t - pad.b;
+
+  const xPos = (i) => pad.l + (i / (data.length - 1)) * chartW;
+  const yPos = (v) => pad.t + (1 - (v - minW) / (maxW - minW)) * chartH;
+
+  // 목표선 (61.5)
+  const goalY = yPos(61.5);
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(78,205,196,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, goalY);
+  ctx.lineTo(W - pad.r, goalY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(78,205,196,0.5)';
+  ctx.font = '10px Space Grotesk';
+  ctx.fillText('목표', W - pad.r - 24, goalY - 3);
+
+  // 라인
+  ctx.strokeStyle = '#4ECDC4';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  data.forEach((v, i) => {
+    if (i === 0) ctx.moveTo(xPos(i), yPos(v));
+    else ctx.lineTo(xPos(i), yPos(v));
+  });
+  ctx.stroke();
+
+  // 점
+  data.forEach((v, i) => {
+    ctx.beginPath();
+    ctx.arc(xPos(i), yPos(v), 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#4ECDC4';
+    ctx.fill();
+    ctx.fillStyle = '#1B2B4B';
+    ctx.beginPath();
+    ctx.arc(xPos(i), yPos(v), 2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 라벨
+  ctx.fillStyle = 'rgba(247,245,240,0.5)';
+  ctx.font = '10px Noto Sans KR';
+  ctx.textAlign = 'center';
+  if (data.length <= 7) {
+    labels.forEach((l, i) => ctx.fillText(l, xPos(i), H - 6));
+  } else {
+    [0, Math.floor(data.length / 2), data.length - 1].forEach(i => {
+      ctx.fillText(labels[i], xPos(i), H - 6);
+    });
+  }
+
+  // Y축
+  ctx.fillStyle = 'rgba(247,245,240,0.4)';
+  ctx.textAlign = 'right';
+  [minW + 1, (minW + maxW) / 2, maxW - 1].forEach(v => {
+    ctx.fillText(Math.round(v) + 'kg', pad.l - 4, yPos(v) + 4);
+  });
+}
+
+// 체크리스트
+function renderChecklist() {
+  const list = document.getElementById('checklist');
+  const done = checks[todayKey] || [];
+  list.innerHTML = TASKS.map(t => {
+    const isChecked = done.includes(t.id);
+    const badgeClass = `badge-${t.badge}`;
+    return `<div class="check-item ${isChecked ? 'checked' : ''}" onclick="toggleCheck('${t.id}')">
+      <div class="checkbox"></div>
+      <span class="check-text">${t.text}</span>
+      <span class="check-badge ${badgeClass}">${t.label}</span>
+    </div>`;
+  }).join('');
+  updateProgress();
+}
+
+function toggleCheck(id) {
+  const done = checks[todayKey] || [];
+  const idx = done.indexOf(id);
+  if (idx >= 0) done.splice(idx, 1);
+  else done.push(id);
+  checks[todayKey] = done;
+  localStorage.setItem('dietChecks', JSON.stringify(checks));
+  renderChecklist();
+}
+
+function updateProgress() {
+  const done = (checks[todayKey] || []).length;
+  const total = TASKS.length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressText').textContent = `${done} / ${total}`;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// 사이드바 업데이트
+function updateSidebar() {
+  const last = weights[weights.length - 1];
+  if (!last) return;
+  const w = last.weight;
+  document.getElementById('currentWeightDisplay').textContent = w.toFixed(1);
+  const gap = w - 61.5;
+  document.getElementById('weightGapDisplay').textContent = gap > 0
+    ? `▼ ${gap.toFixed(1)}kg 남음`
+    : '🎉 목표 달성!';
+
+  // 단계 표시
+  const d1 = document.getElementById('dot1');
+  const d2 = document.getElementById('dot2');
+  const d3 = document.getElementById('dot3');
+  if (w > 70) {
+    d1.className = 'stage-dot active'; d2.className = 'stage-dot locked'; d3.className = 'stage-dot locked';
+  } else if (w > 65) {
+    d1.className = 'stage-dot done'; d2.className = 'stage-dot active'; d3.className = 'stage-dot locked';
+  } else if (w > 63) {
+    d1.className = 'stage-dot done'; d2.className = 'stage-dot done'; d3.className = 'stage-dot active';
+  } else {
+    d1.className = 'stage-dot done'; d2.className = 'stage-dot done'; d3.className = 'stage-dot done';
+  }
+}
+
+// 초기화
+renderWeights();
+renderChecklist();
+updateSidebar();
+</script>
+</body>
+</html>
